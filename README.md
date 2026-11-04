@@ -31,6 +31,8 @@ La URL JDBC que recibe el backend es:
 
 Dentro de Docker, el host de PostgreSQL es `db`, no `localhost`.
 
+### Antes de Construir y ejecutar el compose.yaml colocar el directorio raiz del actual proyecto, como directorio hermano del directorio raiz del proyecto easyecommerce que contiene el codigo fuente
+
 ## Construir y ejecutar
 
 Desde PowerShell, en la raíz del proyecto:
