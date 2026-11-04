@@ -1,0 +1,94 @@
+
+services:
+
+  # -------- SPRING BOOT APPLICATION --------
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+
+    container_name: easycommerce-app
+    restart: unless-stopped
+
+    ports:
+      - "127.0.0.1:${APP_PORT:-8081}:8081"
+
+    environment:
+      DB_NAME: jdbc:postgresql://db:5432/${POSTGRES_DB:-easyecommerce}
+      DB_USER: ${POSTGRES_USER:-postgres}
+      DB_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      PORT: 8081
+      SQL_INIT_MODE: ${SQL_INIT_MODE:-always}
+
+    depends_on:
+      db:
+        condition: service_healthy
+
+    networks:
+      - easycommerce-network
+
+
+  # -------- POSTGRESQL DATABASE --------
+  db:
+    image: postgres:15
+    container_name: easycommerce-db
+    restart: unless-stopped
+
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-easyecommerce}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+
+    ports:
+      - "127.0.0.1:${DB_PORT:-5432}:5432"
+
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-easyecommerce}
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+    networks:
+      - easycommerce-network
+
+
+  # -------- PGADMIN --------
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: easycommerce-pgadmin
+    restart: unless-stopped
+
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL:-admin@easycommerce.com}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD:-admin123}
+
+    ports:
+      - "127.0.0.1:${PGADMIN_PORT:-5050}:80"
+
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+
+    depends_on:
+      db:
+        condition: service_healthy
+
+    networks:
+      - easycommerce-network
+
+
+# -------- NETWORKS --------
+networks:
+  easycommerce-network:
+    driver: bridge
+
+
+# -------- VOLUMES --------
+volumes:
+  postgres_data:
+  pgadmin_data:
