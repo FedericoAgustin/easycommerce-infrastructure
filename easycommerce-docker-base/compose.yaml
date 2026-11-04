@@ -1,6 +1,4 @@
-
 services:
-
   # -------- SPRING BOOT APPLICATION --------
   app:
     build:
@@ -26,7 +24,6 @@ services:
 
     networks:
       - easycommerce-network
-
 
   # -------- POSTGRESQL DATABASE --------
   db:
@@ -57,7 +54,6 @@ services:
     networks:
       - easycommerce-network
 
-
   # -------- PGADMIN --------
   pgadmin:
     image: dpage/pgadmin4:latest
@@ -81,12 +77,39 @@ services:
     networks:
       - easycommerce-network
 
+  # -------- JIRA SOFTWARE --------
+  jira:
+    image: atlassian/jira-software:10.3.22-jdk17-r9
+    container_name: easycommerce-jira
+    restart: unless-stopped
+
+    ports:
+      - "127.0.0.1:${JIRA_PORT:-8080}:8080"
+
+    environment:
+      ATL_JDBC_URL: jdbc:postgresql://db:5432/${JIRA_DB_NAME:-jira}
+      ATL_JDBC_USER: ${JIRA_DB_USER:-jira}
+      ATL_JDBC_PASSWORD: ${JIRA_DB_PASSWORD}
+      ATL_DB_DRIVER: org.postgresql.Driver
+      ATL_DB_TYPE: postgres72
+
+      JVM_MINIMUM_MEMORY: 1024m
+      JVM_MAXIMUM_MEMORY: 2048m
+
+    volumes:
+      - jira_data:/var/atlassian/application-data/jira
+
+    depends_on:
+      db:
+        condition: service_healthy
+
+    networks:
+      - easycommerce-network
 
 # -------- NETWORKS --------
 networks:
   easycommerce-network:
     driver: bridge
-
 
 # -------- VOLUMES --------
 volumes:
