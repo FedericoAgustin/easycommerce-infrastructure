@@ -1,55 +1,49 @@
 
 services:
-
-  # -------- SPRING BOOT APPLICATION --------
+  # ==========================================
+  # EASYCOMMERCE - SPRING BOOT
+  # ==========================================
   app:
     build:
       context: .
       dockerfile: Dockerfile
-
     container_name: easycommerce-app
     restart: unless-stopped
-
     ports:
       - "127.0.0.1:${APP_PORT:-8081}:8081"
-
     environment:
       DB_NAME: jdbc:postgresql://db:5432/${POSTGRES_DB:-easyecommerce}
       DB_USER: ${POSTGRES_USER:-postgres}
       DB_PASSWORD: ${POSTGRES_PASSWORD:?Defini POSTGRES_PASSWORD en .env}
       PORT: 8081
       SQL_INIT_MODE: ${SQL_INIT_MODE:-always}
-
     depends_on:
       db:
         condition: service_healthy
-
     networks:
       - easycommerce-network
 
-
-  # -------- POSTGRESQL DATABASE --------
+  # ==========================================
+  # POSTGRESQL
+  # ==========================================
   db:
     image: postgres:15
     container_name: easycommerce-db
     restart: unless-stopped
-
     environment:
       POSTGRES_DB: ${POSTGRES_DB:-easyecommerce}
       POSTGRES_USER: ${POSTGRES_USER:-postgres}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Defini POSTGRES_PASSWORD en .env}
 
+      # Datos para crear la base de Jira
       JIRA_DB_NAME: ${JIRA_DB_NAME:-jira}
       JIRA_DB_USER: ${JIRA_DB_USER:-jira}
       JIRA_DB_PASSWORD: ${JIRA_DB_PASSWORD:?Defini JIRA_DB_PASSWORD en .env}
-
     ports:
       - "127.0.0.1:${DB_PORT:-5432}:5432"
-
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./database/init-jira.sh:/docker-entrypoint-initdb.d/init-jira.sh:ro
-
     healthcheck:
       test:
         - CMD-SHELL
@@ -58,123 +52,131 @@ services:
       timeout: 5s
       retries: 5
       start_period: 10s
-
     networks:
       - easycommerce-network
 
-
-  # -------- PGADMIN --------
+  # ==========================================
+  # PGADMIN
+  # ==========================================
   pgadmin:
     image: dpage/pgadmin4:latest
     container_name: easycommerce-pgadmin
     restart: unless-stopped
-
     ports:
       - "127.0.0.1:${PGADMIN_PORT:-5050}:80"
-
     environment:
       PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL:-admin@easycommerce.com}
       PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD:?Defini PGADMIN_PASSWORD en .env}
-
     volumes:
       - pgadmin_data:/var/lib/pgadmin
-
     depends_on:
       db:
         condition: service_healthy
-
     networks:
       - easycommerce-network
 
-
-  # -------- JIRA SOFTWARE --------
+  # ==========================================
+  # JIRA SOFTWARE
+  # ==========================================
   jira:
     image: atlassian/jira-software:10.3.22-jdk17-r9
     container_name: easycommerce-jira
     restart: unless-stopped
-
     ports:
       - "127.0.0.1:${JIRA_PORT:-8080}:8080"
-
     environment:
       ATL_JDBC_URL: jdbc:postgresql://db:5432/${JIRA_DB_NAME:-jira}
       ATL_JDBC_USER: ${JIRA_DB_USER:-jira}
       ATL_JDBC_PASSWORD: ${JIRA_DB_PASSWORD:?Defini JIRA_DB_PASSWORD en .env}
       ATL_DB_DRIVER: org.postgresql.Driver
       ATL_DB_TYPE: postgres72
-
       JVM_MINIMUM_MEMORY: 1024m
       JVM_MAXIMUM_MEMORY: 2048m
-
     volumes:
       - jira_data:/var/atlassian/application-data/jira
-
     depends_on:
       db:
         condition: service_healthy
-
     networks:
       - easycommerce-network
 
+  # ==========================================
+  # N8N - AUTOMATIZACION
+  # ==========================================
+  n8n:
+    image: docker.n8n.io/n8nio/n8n:latest
+    container_name: easycommerce-n8n
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:${N8N_PORT:-5678}:5678"
+    environment:
+      TZ: ${TZ:-America/Argentina/Jujuy}
+      GENERIC_TIMEZONE: ${GENERIC_TIMEZONE:-America/Argentina/Jujuy}
+      N8N_HOST: ${N8N_HOST:-localhost}
+      N8N_PORT: 5678
+      N8N_PROTOCOL: http
+      NODE_ENV: production
+      N8N_ENFORCE_SETTINGS_FILE_PERMISSIONS: "true"
+      N8N_ENCRYPTION_KEY: ${N8N_ENCRYPTION_KEY:?Defini N8N_ENCRYPTION_KEY en .env}
+    volumes:
+      - n8n_data:/home/node/.n8n
+    networks:
+      - easycommerce-network
 
-  # -------- PROMETHEUS --------
+  # ==========================================
+  # PROMETHEUS - METRICAS
+  # ==========================================
   prometheus:
     image: prom/prometheus:latest
     container_name: easycommerce-prometheus
     restart: unless-stopped
-
     ports:
       - "127.0.0.1:${PROMETHEUS_PORT:-9090}:9090"
-
     volumes:
       - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
       - prometheus_data:/prometheus
-
     command:
-      - "--config.file=/etc/prometheus/prometheus.yml"
-      - "--storage.tsdb.path=/prometheus"
-      - "--storage.tsdb.retention.time=15d"
-
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.path=/prometheus
+      - --storage.tsdb.retention.time=15d
     depends_on:
       - app
-
     networks:
       - easycommerce-network
 
-
-  # -------- GRAFANA --------
+  # ==========================================
+  # GRAFANA - DASHBOARDS
+  # ==========================================
   grafana:
     image: grafana/grafana:latest
     container_name: easycommerce-grafana
     restart: unless-stopped
-
     ports:
       - "127.0.0.1:${GRAFANA_PORT:-3000}:3000"
-
     environment:
       GF_SECURITY_ADMIN_USER: ${GRAFANA_USER:-admin}
       GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_PASSWORD:?Defini GRAFANA_PASSWORD en .env}
-
     volumes:
       - grafana_data:/var/lib/grafana
-
     depends_on:
       - prometheus
-
     networks:
       - easycommerce-network
 
-
-# -------- NETWORK --------
+# ==========================================
+# RED DOCKER
+# ==========================================
 networks:
   easycommerce-network:
     driver: bridge
 
-
-# -------- PERSISTENT VOLUMES --------
+# ==========================================
+# VOLUMENES PERSISTENTES
+# ==========================================
 volumes:
   postgres_data:
   pgadmin_data:
   jira_data:
+  n8n_data:
   prometheus_data:
   grafana_data:

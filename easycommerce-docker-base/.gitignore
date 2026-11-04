@@ -1,5 +1,22 @@
+# Environment
 .env
+.env.*
+
+# Permitir plantilla de variables
+!.env.example
+
+# Java / Maven
 target/
+*.class
+
+# IDE
 .idea/
+*.iml
 .vscode/
+
+# Logs
 *.log
+
+# Sistema operativo
+.DS_Store
+Thumbs.db
