@@ -1,7 +1,7 @@
 # EasyCommerce - entorno Docker inicial
 
 Este paquete agrega una base de infraestructura para ejecutar EasyCommerce con:
-- Backend Spring Boot (Java 21), construido desde el código fuente.
+- Backend Spring Boot (Java 25), construido desde el código fuente.
 - PostgreSQL 15 con volumen persistente.
 - pgAdmin para administrar la base de datos.
 
