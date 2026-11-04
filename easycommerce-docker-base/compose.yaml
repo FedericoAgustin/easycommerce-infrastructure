@@ -5,7 +5,7 @@ services:
   # ==========================================
   app:
     build:
-      context: .
+      context: ../Easyecommerce
       dockerfile: Dockerfile
     container_name: easycommerce-app
     restart: unless-stopped
@@ -16,7 +16,7 @@ services:
       DB_USER: ${POSTGRES_USER:-postgres}
       DB_PASSWORD: ${POSTGRES_PASSWORD:?Defini POSTGRES_PASSWORD en .env}
       PORT: 8081
-      SQL_INIT_MODE: ${SQL_INIT_MODE:-always}
+      SQL_INIT_MODE: ${SQL_INIT_MODE}
     depends_on:
       db:
         condition: service_healthy
