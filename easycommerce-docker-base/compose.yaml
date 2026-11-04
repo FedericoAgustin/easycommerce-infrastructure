@@ -5,7 +5,7 @@ services:
   # ==========================================
   app:
     build:
-      context: ../Easyecommerce
+      context: ../../Easyecommerce
       dockerfile: Dockerfile
     container_name: easycommerce-app
     restart: unless-stopped
