@@ -100,29 +100,7 @@ services:
     networks:
       - easycommerce-network
 
-  # ==========================================
-  # N8N - AUTOMATIZACION
-  # ==========================================
-  n8n:
-    image: docker.n8n.io/n8nio/n8n:latest
-    container_name: easycommerce-n8n
-    restart: unless-stopped
-    ports:
-      - "127.0.0.1:${N8N_PORT:-5678}:5678"
-    environment:
-      TZ: ${TZ:-America/Argentina/Jujuy}
-      GENERIC_TIMEZONE: ${GENERIC_TIMEZONE:-America/Argentina/Jujuy}
-      N8N_HOST: ${N8N_HOST:-localhost}
-      N8N_PORT: 5678
-      N8N_PROTOCOL: http
-      NODE_ENV: production
-      N8N_ENFORCE_SETTINGS_FILE_PERMISSIONS: "true"
-      N8N_ENCRYPTION_KEY: ${N8N_ENCRYPTION_KEY:?Defini N8N_ENCRYPTION_KEY en .env}
-    volumes:
-      - n8n_data:/home/node/.n8n
-    networks:
-      - easycommerce-network
-
+  
   # ==========================================
   # PROMETHEUS - METRICAS
   # ==========================================
@@ -177,6 +155,5 @@ volumes:
   postgres_data:
   pgadmin_data:
   jira_data:
-  n8n_data:
   prometheus_data:
   grafana_data:
