@@ -142,7 +142,7 @@ services:
       N8N_HOST: ${N8N_HOST:-localhost}
       N8N_PORT: 5678
       N8N_PROTOCOL: http
-      WEBHOOK_URL: ${N8N_PUBLIC_URL:-http://localhost:5678/}
+      N8N_WEBHOOK_URL: ${N8N_PUBLIC_URL:-http://localhost:5678/}
       NODE_ENV: production
       N8N_ENFORCE_SETTINGS_FILE_PERMISSIONS: "true"
       N8N_ENCRYPTION_KEY: ${N8N_ENCRYPTION_KEY:?Defini N8N_ENCRYPTION_KEY en .env}
